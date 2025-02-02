@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 EMG Monitoring</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        canvas { max-width: 100%; height: 400px; }
+        button { padding: 10px; margin: 5px; font-size: 16px; }
+    </style>
+</head>
+<body>
+    <h2>ESP32 EMG Data Monitoring</h2>
+    <canvas id="emgChart"></canvas>
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        var ctx = document.getElementById('emgChart').getContext('2d');
+        var dataPoints = [];
+
+        var emgChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'EMG Signal',
+                    data: dataPoints,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    fill: false,
+                }]
+            },
+            options: {
+                animation: false,
+                scales: {
+                    x: { display: false },
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        socket.on('emg_data', function(data) {
+            if (dataPoints.length > 1000) dataPoints.shift();
+            dataPoints.push(data);
+            emgChart.update();
+        });
+    </script>
+</body>
+</html>
